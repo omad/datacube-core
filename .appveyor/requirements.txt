@@ -6,4 +6,4 @@ netCDF4==1.4.2
 rasterio==1.0.9
 pyzmq==17.1.2
 psycopg2==2.7.5
-scipy==0.17.0
+scipy==1.1.0
