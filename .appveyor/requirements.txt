@@ -4,6 +4,6 @@ numpy==1.15.3
 gdal==2.3.2
 netCDF4==1.4.2
 rasterio==1.0.9
-pyzmq==15.2.0
+pyzmq==17.1.2
 psycopg2==2.6.1
 scipy==0.17.0
