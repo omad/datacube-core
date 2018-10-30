@@ -46,7 +46,7 @@ OWSLib==0.17.0
 pandas==0.23.4
 pathos==0.2.2.1
 pbr==5.1.0
-pendulum==2.0.3
+pendulum==2.0.4
 pluggy==0.8.0
 pox==0.2.4
 ppft==1.6.4.8
