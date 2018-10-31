@@ -12,7 +12,7 @@ cf-units==1.2.0
 cffi==1.11.5
 chardet==3.0.4
 click==6.7
-click-plugins==1.0.3
+click-plugins==1.0.4
 cligj==0.4.0
 cloudpickle==0.5.2
 compliance-checker==3.1.1
