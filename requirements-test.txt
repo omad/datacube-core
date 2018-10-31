@@ -65,7 +65,7 @@ pytest-cov==2.5.1
 pytest-timeout==1.2.1
 python-dateutil==2.7.2
 pytz==2018.4
-pytzdata==2018.4
+pytzdata==2018.7
 PyYAML==3.12
 rasterio==1.0.2
 redis==2.10.6
