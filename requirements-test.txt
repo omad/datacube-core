@@ -1,4 +1,4 @@
-affine==2.2.0
+affine==2.2.1
 amqp==2.2.2
 astroid==1.6.3
 attrs==17.4.0
