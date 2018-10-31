@@ -57,7 +57,7 @@ pycodestyle==2.4.0
 pycparser==2.18
 pygeoif==0.7
 pylint==1.8.4
-pyparsing==2.2.0
+pyparsing==2.3.0
 pyPEG2==2.15.2
 pyproj==1.9.5.1
 pytest==3.5.0
