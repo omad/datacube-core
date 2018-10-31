@@ -1,7 +1,7 @@
 affine==2.2.0
 amqp==2.2.2
 astroid==1.6.3
-attrs==17.4.0
+attrs==18.2.0
 billiard==3.5.0.3
 boto3==1.4.3
 botocore==1.4.93
