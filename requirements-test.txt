@@ -48,7 +48,7 @@ pandas==0.22.0
 pathos==0.2.1
 pbr==4.0.2
 pendulum==1.4.4
-pluggy==0.6.0
+pluggy==0.8.0
 pox==0.2.3
 ppft==1.6.4.7.1
 psycopg2==2.7.4
