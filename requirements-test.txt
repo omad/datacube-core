@@ -51,7 +51,7 @@ pendulum==1.4.4
 pluggy==0.6.0
 pox==0.2.3
 ppft==1.6.4.7.1
-psycopg2==2.7.4
+psycopg2==2.7.6
 py==1.5.3
 pycodestyle==2.4.0
 pycparser==2.18
