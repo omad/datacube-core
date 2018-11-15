@@ -68,7 +68,7 @@ pytz==2018.4
 pytzdata==2018.4
 PyYAML==3.12
 rasterio==1.0.2
-redis==2.10.6
+redis==3.0.1
 regex==2017.7.28
 requests==2.18.4
 s3transfer==0.1.13
