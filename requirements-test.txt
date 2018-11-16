@@ -23,7 +23,7 @@ dill==0.2.7.1
 docopt==0.6.2
 docutils==0.14
 graphviz==0.8.2
-hypothesis==3.55.3
+hypothesis==3.82.1
 idna==2.6
 isodate==0.6.0
 isort==4.3.4
