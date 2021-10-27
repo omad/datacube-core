@@ -2,10 +2,6 @@
    Open Data Cube Manual
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The Open Data Cube provides an integrated gridded data
-analysis environment for decades of analysis ready Earth observation satellite
-and related data from multiple sources.
-
 
 .. image:: _static/UsingODC.png
    :target: data-access-analysis/index.html
@@ -19,6 +15,9 @@ and related data from multiple sources.
    :target: api/index.html
    :class: img-fluid
 
+
+.. include:: ../README.rst
+   :start-line: 7
 
 .. toctree::
    :maxdepth: 5
