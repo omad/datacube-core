@@ -17,12 +17,6 @@
 }
 
 
-/* PAGE LAYOUT */
-.container-xl {
-    max-width: 100%;
-    background-color: #F8F8F8;
-}
-
 /* TOP NAV */
 .navbar-light {
     box-shadow: none;
