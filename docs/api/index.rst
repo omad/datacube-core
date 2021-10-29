@@ -44,7 +44,7 @@ The following pages provide a full API reference for the ``datacube`` python lib
     geometry/creating
     geometry/spatial-operations
     geometry/utilities
-    core-classes/geometry
+    geometry/classes
 
 
 .. toctree::

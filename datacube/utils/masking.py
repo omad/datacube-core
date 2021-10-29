@@ -46,7 +46,7 @@ def describe_variable_flags(variable, with_pandas=True):
         11      0       cloud_fmask          Cloud (Fmask)
         10      0       cloud_acca           Cloud (ACCA)
 
-    :param variable: Masking xarray.Dataset or xarray.DataArray
+    :param variable: Masking :class:`~xarray.Dataset` or :class:`~xarray.DataArray`
     :return: Pandas Dataframe or str
     """
     flags_def = get_flags_def(variable)
@@ -92,12 +92,12 @@ def make_mask(variable, **flags):
 
     >>> make_mask(pqa, **GOOD_PIXEL_FLAGS) # doctest: +SKIP
 
-    where `GOOD_PIXEL_FLAGS` is a dict of flag_name to True/False
+    where ``GOOD_PIXEL_FLAGS`` is a dict of flag_name to True/False
 
     :param variable:
     :type variable: xarray.Dataset or xarray.DataArray
     :param flags: list of boolean flags
-    :return: boolean xarray.DataArray or xarray.Dataset
+    :return: boolean :class:`~xarray.DataArray` or :class:`~xarray.Dataset`
     """
     flags_def = get_flags_def(variable)
 

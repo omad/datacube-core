@@ -24,9 +24,9 @@ observations of clouds when we are interested in what is on the ground.
 
 Several methods are used when encoding these types of variables:
 
- - On-off bit flags, for a particular binary bit
- - Collections of bits that can indicate more than two possible values
- - Looking for a specific value stored using all available bits in the variable
+- On-off bit flags, for a particular binary bit
+- Collections of bits that can indicate more than two possible values
+- Looking for a specific value stored using all available bits in the variable
 
 From prior work, it is very easy to make mistakes when using these types of
 variables, which can lead to processing the wrong set of observations, and
