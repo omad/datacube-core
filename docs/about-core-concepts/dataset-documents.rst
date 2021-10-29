@@ -1,5 +1,9 @@
-Dataset Documents
-*****************
+
+.. _dataset-documents:
+
+===================
+ Dataset Documents
+===================
 
 Dataset metadata documents define critical metadata about a dataset including:
 
@@ -177,6 +181,7 @@ The example below is for a GEDI L2B cover_z dataset.
 
 
 Note that this dataset metadata document:
+
   - references a 3D product definition which includes an `extra_dimensions` specification
     and an `extra_dim` name for the `cover_z` measurement (see: :ref:`product-doc-extra-dim`)
   - specifies a `file_format` which supports 3D data and for which there is a 3D enabled
@@ -322,7 +327,7 @@ lineage
                         checksum_sha1: f66265314fc12e005deb356b69721a7031a71374
 
 Reasons for deprecation
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 #. Duplication of spatial information
 

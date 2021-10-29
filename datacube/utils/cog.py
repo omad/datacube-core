@@ -42,7 +42,7 @@ def _write_cog(
 ) -> Union[Path, bytes]:
     """Write geo-registered ndarray to a GeoTiff file or RAM.
 
-    :param pix: ``xarray.DataArray`` with crs or (ndarray, geobox, nodata) triple
+    :param pix: :py:class:`xarray.DataArray` with crs or (ndarray, geobox, nodata) triple
     :param fname:  Output file or ":mem:"
     :param nodata: Set ``nodata`` flag to this value if supplied
     :param overwrite: True -- replace existing file, False -- abort with IOError exception
@@ -220,13 +220,13 @@ def write_cog(
     **extra_rio_opts
 ) -> Union[Path, bytes, Delayed]:
     """
-    Save ``xarray.DataArray`` to a file in Cloud Optimized GeoTiff format.
+    Save :py:class:`xarray.DataArray` to a file in Cloud Optimized GeoTiff format.
 
     This function is "Dask aware". If ``geo_im`` is a Dask array, then the
     output of this function is also a Dask Delayed object. This allows us to
     save multiple images concurrently across a Dask cluster. If you are not
     familiar with Dask this can be confusing, as no operation is performed until the
-    ``.compute()`` method is called, so if you call this function with Dask
+    :meth:`~dask.array.Array.compute` method is called, so if you call this function with Dask
     array it will return immediately without writing anything to disk.
 
     If you are using Dask to speed up data loading, follow the example below:
@@ -239,7 +239,7 @@ def write_cog(
        # or compute input first instead
        write_cog(xx.isel(time=0).red.compute(), "red.tif")
 
-    :param geo_im: ``xarray.DataArray`` with crs
+    :param xarray.DataArray geo_im: :class:`xarray.DataArray` with crs
     :param fname: Output path or ``":mem:"`` in which case compress to RAM and return bytes
     :param overwrite: True -- replace existing file, False -- abort with IOError exception
     :param blocksize: Size of internal tiff tiles (512x512 pixels)
@@ -251,15 +251,15 @@ def write_cog(
                    read from the attributes of the input array (``geo_im.attrs['nodata']``).
     :param use_windowed_writes: Write image block by block (might need this for large images)
     :param intermediate_compression: Configure compression settings for first pass write, default is no compression
-    :param extra_rio_opts: Any other option is passed to ``rasterio.open``
+    :param extra_rio_opts: Any other option is passed to :func:`rasterio.open`
 
     :returns: Path to which output was written
     :returns: Bytes if ``fname=":mem:"``
-    :returns: ``dask.Delayed`` object if input is a Dask array
+    :returns: :class:`dask.Delayed` object if input is a Dask array
 
-    .. note ::
+    .. note::
 
-       **memory requirements**
+       **Memory requirements**
 
        This function generates a temporary in memory tiff file without
        compression to speed things up. It then adds overviews to this file and
@@ -315,7 +315,7 @@ def to_cog(
     **extra_rio_opts
 ) -> Union[bytes, Delayed]:
     """
-    Compress ``xarray.DataArray`` into Cloud Optimized GeoTiff bytes in memory.
+    Compress :class:`xarray.DataArray` into Cloud Optimized GeoTiff bytes in memory.
 
     This function doesn't write to disk, it compresses in RAM, which is useful
     for saving data to S3 or other cloud object stores.
@@ -324,10 +324,10 @@ def to_cog(
     output of this function is also a Dask Delayed object. This allows us to
     compress multiple images concurrently across a Dask cluster. If you are not
     familiar with Dask this can be confusing, as no operation is performed until the
-    ``.compute()`` method is called, so if you call this function with Dask
+    :meth:`~dask.array.Array.compute` method is called, so if you call this function with Dask
     array it will return immediately without compressing any data.
 
-    :param geo_im: ``xarray.DataArray`` with crs
+    :param xarray.DataArray geo_im: :class:`xarray.DataArray` with CRS
     :param blocksize: Size of internal tiff tiles (512x512 pixels)
     :param ovr_blocksize: Size of internal tiles in overview images (defaults to blocksize)
     :param overview_resampling: Use this resampling when computing overviews

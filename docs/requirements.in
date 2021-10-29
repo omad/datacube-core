@@ -1,0 +1,9 @@
+Sphinx
+sphinx-autodoc-typehints
+sphinx-click
+pydata-sphinx-theme
+sphinx-autobuild
+autodocsumm
+beautifulsoup4
+psycopg2-binary
+-e file:../#egg=datacube[s3]

@@ -1,7 +1,6 @@
-Masking
-=======
-=======
-.. py:module:: datacube.utils.masking
+
+.. currentmodule:: datacube.utils.masking
+
 .. _bit-masking:
 
 Bit Masking
@@ -10,9 +9,8 @@ Bit Masking
 Masking No Data Values
 ----------------------
 
-.. currentmodule:: datacube.utils.masking
 
-.. automethod:: mask_invalid_data
+.. autofunction:: mask_invalid_data
 
 Masking with Bit-Flag Measurements
 ----------------------------------
@@ -47,5 +45,5 @@ How to Create Masks within code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-.. automethod:: describe_variable_flags
-.. automethod:: make_mask
+.. autofunction:: describe_variable_flags
+.. autofunction:: make_mask

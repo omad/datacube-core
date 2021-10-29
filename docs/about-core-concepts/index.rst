@@ -61,9 +61,18 @@ The Open Data Cube has a range of uses, including the following:
     datasets
     products
     metadata-types
+    dataset-documents
 
 .. toctree::
     :caption: Ecosystem
 
     extensions
     existing-deployments
+
+.. toctree::
+   :caption: Project information
+
+   whats_new
+   release_process
+   license
+   glossary

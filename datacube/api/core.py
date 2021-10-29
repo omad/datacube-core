@@ -34,11 +34,11 @@ class TerminateCurrentLoad(Exception):
     pass
 
 
-class Datacube(object):
+class Datacube:
     """
     Interface to search, read and write a datacube.
 
-    :type index: datacube.index.index.Index
+    :type index: datacube.index.Index
     """
 
     def __init__(self,
@@ -184,7 +184,7 @@ class Datacube(object):
          skip_broken_datasets=False, dask_chunks=None, like=None, fuse_func=None, align=None,
          datasets=None, dataset_predicate=None, progress_cbk=None, **query):
         """
-        Load data as an ``xarray.Dataset`` object.  Each measurement will be a data variable in the :class:`xarray.Dataset`.
+        Load data as an :class:`xarray.Dataset`.  Each measurement will be a data variable in the :class:`xarray.Dataset`.
 
         See the `xarray documentation <http://xarray.pydata.org/en/stable/data-structures.html>`_ for usage of the
         :class:`xarray.Dataset` and :class:`xarray.DataArray` objects.

@@ -101,10 +101,11 @@ class Tile(object):
     def split_by_time(self, freq='A', time_dim='time', **kwargs):
         """
         Splits along the `time` dimension, into periods, using pandas offsets, such as:
-        :
+
             'A': Annual
             'Q': Quarter
             'M': Month
+
         See: http://pandas.pydata.org/pandas-docs/stable/timeseries.html?highlight=rollback#timeseries-offset-aliases
 
         :param freq: time series frequency

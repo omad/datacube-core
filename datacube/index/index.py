@@ -14,7 +14,7 @@ from datacube.model import MetadataType
 _LOG = logging.getLogger(__name__)
 
 
-class Index(object):
+class Index:
     """
     Access to the datacube index.
 

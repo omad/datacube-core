@@ -459,10 +459,7 @@ class DatasetType:
 
     @property
     def measurements(self) -> Mapping[str, Measurement]:
-        """
-        Dictionary of measurements in this product
-        """
-        # from copy import deepcopy
+        """Return dictionary of measurements in this product."""
         if self._canonical_measurements is None:
             def fix_nodata(m):
                 nodata = m.get('nodata', None)
@@ -478,9 +475,7 @@ class DatasetType:
 
     @property
     def dimensions(self) -> Tuple[str, str, str]:
-        """
-        List of dimension labels for data in this product
-        """
+        """List dimension labels for data in this product."""
         if self.grid_spec is not None:
             spatial_dims = self.grid_spec.dimensions
         else:
@@ -490,9 +485,7 @@ class DatasetType:
 
     @property
     def extra_dimensions(self) -> Mapping[str, Measurement]:
-        """
-        Dictionary of metadata for the third dimension.
-        """
+        """Return dictionary of metadata for the third dimension."""
         if self._extra_dimensions is None:
             self._extra_dimensions = OrderedDict((d['name'], d)
                                                  for d in self.definition.get('extra_dimensions', []))
@@ -500,9 +493,7 @@ class DatasetType:
 
     @cached_property
     def grid_spec(self) -> Optional['GridSpec']:
-        """
-        Grid specification for this product
-        """
+        """Return Grid specification for this product."""
         storage = self.definition.get('storage')
         if storage is None:
             return None
@@ -526,6 +517,7 @@ class DatasetType:
 
         return GridSpec(crs=crs, **gs_params)
 
+    @staticmethod
     def validate_extra_dims(definition: dict):
         """Validate 3D metadata in the product definition.
 
@@ -592,7 +584,7 @@ class DatasetType:
         self, measurements: Optional[Union[Iterable[str], str]] = None
     ) -> Mapping[str, Measurement]:
         """
-        Find measurements by name
+        Find measurements by name.
 
         :param measurements: list of measurement names or a single measurement name, or None to get all
         """
@@ -673,9 +665,7 @@ class DatasetType:
         return self.metadata_type.dataset_reader(dataset_doc)
 
     def to_dict(self) -> Mapping[str, Any]:
-        """
-        Convert to a dictionary representation of the available fields
-        """
+        """Convert to a dictionary representation of the available fields."""
         row = dict(**self.fields)
         row.update(id=self.id,
                    name=self.name,
@@ -714,31 +704,26 @@ class DatasetType:
 
 @schema_validated(SCHEMA_PATH / 'ingestor-config-type-schema.yaml')
 class IngestorConfig:
-    """
-    Ingestor configuration definition
-    """
-    pass
+    """Ingestor configuration definition."""
 
 
 class GridSpec:
     """
-    Definition for a regular spatial grid
+    Definition for a regular spatial grid.
 
-    >>> gs = GridSpec(crs=geometry.CRS('EPSG:4326'), tile_size=(1, 1), resolution=(-0.1, 0.1), origin=(-50.05, 139.95))
-    >>> gs.tile_resolution
-    (10, 10)
-    >>> list(gs.tiles(geometry.BoundingBox(140, -50, 141.5, -48.5)))
-    [((0, 0), GeoBox(10, 10, Affine(0.1, 0.0, 139.95,
-           0.0, -0.1, -49.05), EPSG:4326)), ((1, 0), GeoBox(10, 10, Affine(0.1, 0.0, 140.95,
-           0.0, -0.1, -49.05), EPSG:4326)), ((0, 1), GeoBox(10, 10, Affine(0.1, 0.0, 139.95,
-           0.0, -0.1, -48.05), EPSG:4326)), ((1, 1), GeoBox(10, 10, Affine(0.1, 0.0, 140.95,
-           0.0, -0.1, -48.05), EPSG:4326))]
+    .. code-block:: ipython
 
-    :param geometry.CRS crs: Coordinate System used to define the grid
-    :param [float,float] tile_size: (Y, X) size of each tile, in CRS units
-    :param [float,float] resolution: (Y, X) size of each data point in the grid, in CRS units. Y will
-                                   usually be negative.
-    :param [float,float] origin: (Y, X) coordinates of a corner of the (0,0) tile in CRS units. default is (0.0, 0.0)
+        >>> gs = GridSpec(crs=geometry.CRS('EPSG:4326'), tile_size=(1, 1),
+            resolution=(-0.1, 0.1), origin=(-50.05, 139.95))
+        >>> gs.tile_resolution
+        (10, 10)
+        >>> list(gs.tiles(geometry.BoundingBox(140, -50, 141.5, -48.5)))
+        [((0, 0), GeoBox(10, 10, Affine(0.1, 0.0, 139.95,
+            0.0, -0.1, -49.05), EPSG:4326)), ((1, 0), GeoBox(10, 10, Affine(0.1, 0.0, 140.95,
+            0.0, -0.1, -49.05), EPSG:4326)), ((0, 1), GeoBox(10, 10, Affine(0.1, 0.0, 139.95,
+            0.0, -0.1, -48.05), EPSG:4326)), ((1, 1), GeoBox(10, 10, Affine(0.1, 0.0, 140.95,
+            0.0, -0.1, -48.05), EPSG:4326))]
+
     """
 
     def __init__(self,
@@ -746,6 +731,14 @@ class GridSpec:
                  tile_size: Tuple[float, float],
                  resolution: Tuple[float, float],
                  origin: Optional[Tuple[float, float]] = None):
+        """
+        Create a GridSpec.
+
+        :param geometry.CRS crs: Coordinate System used to define the grid
+        :param tile_size: (Y, X) size of each tile, in CRS units
+        :param resolution: (Y, X) size of each data point in the grid, in CRS units. Y will usually be negative.
+        :param origin: (Y, X) coordinates of a corner of the (0,0) tile in CRS units. default is (0.0, 0.0)
+        """
         self.crs = crs
         self.tile_size = tile_size
         self.resolution = resolution
@@ -762,31 +755,24 @@ class GridSpec:
 
     @property
     def dimensions(self) -> Tuple[str, str]:
-        """
-        List of dimension names of the grid spec
-
-        """
+        """List dimension names of the grid spec."""
         return self.crs.dimensions
 
     @property
     def alignment(self) -> Tuple[float, float]:
-        """
-        Pixel boundary alignment
-        """
+        """Return pixel boundary alignment."""
         y, x = (orig % abs(res) for orig, res in zip(self.origin, self.resolution))
         return (y, x)
 
     @property
     def tile_resolution(self) -> Tuple[int, int]:
-        """
-        Tile size in pixels in CRS dimension order (Usually y,x or lat,lon)
-        """
+        """ Calculate tile size in pixels in CRS dimension order (Usually y,x or lat,lon). """
         y, x = (int(abs(ts / res)) for ts, res in zip(self.tile_size, self.resolution))
         return (y, x)
 
     def tile_coords(self, tile_index: Tuple[int, int]) -> Tuple[float, float]:
         """
-        Coordinate of the top-left corner of the tile in (Y,X) order
+        Return Coordinate of the top-left corner of the tile in (Y,X) order.
 
         :param tile_index: in X,Y order
         """
@@ -803,7 +789,7 @@ class GridSpec:
 
     def tile_geobox(self, tile_index: Tuple[int, int]) -> geometry.GeoBox:
         """
-        Tile geobox.
+        Return Tile geobox.
 
         :param (int,int) tile_index:
         """
@@ -817,12 +803,11 @@ class GridSpec:
               geobox_cache: Optional[dict] = None) -> Iterator[Tuple[Tuple[int, int],
                                                                      geometry.GeoBox]]:
         """
-        Returns an iterator of tile_index, :py:class:`GeoBox` tuples across
-        the grid and overlapping with the specified `bounds` rectangle.
+        Return an iterator of tile_index, :py:class:`GeoBox` tuples overlapping `bounds`.
 
-        .. note::
+        Tiles come from within the grid, and overlapping with the specified `bounds` rectangle.
 
-           Grid cells are referenced by coordinates `(x, y)`, which is the opposite to the usual CRS
+        .. note:: Grid cells are referenced by coordinates `(x, y)`, which is the opposite to the usual CRS
            dimension order.
 
         :param BoundingBox bounds: Boundary coordinates of the required grid
@@ -851,12 +836,11 @@ class GridSpec:
                               geobox_cache: Optional[dict] = None) -> Iterator[Tuple[Tuple[int, int],
                                                                                      geometry.GeoBox]]:
         """
-        Returns an iterator of tile_index, :py:class:`GeoBox` tuples across
-        the grid and overlapping with the specified `geopolygon`.
+        Return an iterator of (tile_index, :py:class:`GeoBox`) overlapping `geopolygon`.
 
-        .. note::
+        Across the grid and overlapping with the specified `geopolygon`.
 
-           Grid cells are referenced by coordinates `(x, y)`, which is the opposite to the usual CRS
+        .. note:: Grid cells are referenced by coordinates `(x, y)`, which is the opposite to the usual CRS
            dimension order.
 
         :param geometry.Geometry geopolygon: Polygon to tile
@@ -878,24 +862,28 @@ class GridSpec:
     @staticmethod
     def grid_range(lower: float, upper: float, step: float) -> range:
         """
-        Returns the indices along a 1D scale.
+        Return the indices along a 1D scale.
 
         Used for producing 2D grid indices.
 
-        >>> list(GridSpec.grid_range(-4.0, -1.0, 3.0))
-        [-2, -1]
-        >>> list(GridSpec.grid_range(1.0, 4.0, -3.0))
-        [-2, -1]
-        >>> list(GridSpec.grid_range(-3.0, 0.0, 3.0))
-        [-1]
-        >>> list(GridSpec.grid_range(-2.0, 1.0, 3.0))
-        [-1, 0]
-        >>> list(GridSpec.grid_range(-1.0, 2.0, 3.0))
-        [-1, 0]
-        >>> list(GridSpec.grid_range(0.0, 3.0, 3.0))
-        [0]
-        >>> list(GridSpec.grid_range(1.0, 4.0, 3.0))
-        [0, 1]
+        .. code-block::
+
+            >>> list(GridSpec.grid_range(-4.0, -1.0, 3.0))
+            [-2, -1]
+            >>> list(GridSpec.grid_range(1.0, 4.0, -3.0))
+            [-2, -1]
+            >>> list(GridSpec.grid_range(-3.0, 0.0, 3.0))
+            [-1]
+            >>> list(GridSpec.grid_range(-2.0, 1.0, 3.0))
+            [-1, 0]
+            >>> list(GridSpec.grid_range(-1.0, 2.0, 3.0))
+            [-1, 0]
+            >>> list(GridSpec.grid_range(0.0, 3.0, 3.0))
+            [0]
+            >>> list(GridSpec.grid_range(1.0, 4.0, 3.0))
+            [0, 1]
+
+        :return: range of the grid
         """
         if step < 0.0:
             lower, upper, step = -upper, -lower, -step
@@ -911,8 +899,10 @@ class GridSpec:
 
 
 def metadata_from_doc(doc: Mapping[str, Any]) -> MetadataType:
-    """Construct MetadataType that is not tied to any particular db index. This is
-    useful when there is a need to interpret dataset metadata documents
+    """
+    Construct a MetadataType that is not tied to any particular db index.
+
+    This is useful when there is a need to interpret dataset metadata documents
     according to metadata spec.
     """
     from .fields import get_dataset_fields
@@ -922,14 +912,15 @@ def metadata_from_doc(doc: Mapping[str, Any]) -> MetadataType:
 
 class ExtraDimensions:
     """
-    Definition for the additional dimensions between (t) and (y, x)
+    Definition for the additional dimensions between (t) and (y, x).
 
     It allows the creation of a subsetted ExtraDimensions that contains slicing information relative to
     the original dimension coordinates.
     """
 
     def __init__(self, extra_dim: Dict[str, Any]):
-        """Init function
+        """
+        Init function
 
         :param extra_dim: Dimension definition dict, typically retrieved from the product definition's
             `extra_dimensions` field.
@@ -954,7 +945,8 @@ class ExtraDimensions:
         }
 
     def has_empty_dim(self) -> bool:
-        """Return True if ExtraDimensions has an empty dimension, otherwise False.
+        """
+        Return True if ExtraDimensions has an empty dimension, otherwise False.
 
         :return: A boolean if ExtraDimensions has an empty dimension, otherwise False.
         """
@@ -1019,7 +1011,8 @@ class ExtraDimensions:
         return self._dim_slice
 
     def measurements_values(self, dim: str) -> List[Any]:
-        """Returns the dimension values after slicing
+        """
+        Returns the dimension values after slicing
 
         :param dim: The name of the dimension
         :return: A list of dimension values for the requested dimension.
@@ -1029,7 +1022,8 @@ class ExtraDimensions:
         return self._dims[dim]['values']
 
     def measurements_slice(self, dim: str) -> slice:
-        """Returns the index for slicing on a dimension
+        """
+        Returns the index for slicing on a dimension
 
         :param dim: The name of the dimension
         :return: A slice for the the requested dimension.
@@ -1038,7 +1032,8 @@ class ExtraDimensions:
         return slice(*dim_slice)
 
     def measurements_index(self, dim: str) -> Tuple[int, int]:
-        """Returns the index for slicing on a dimension as a tuple.
+        """
+        Returns the index for slicing on a dimension as a tuple.
 
         :param dim: The name of the dimension
         :return: A tuple for the the requested dimension.
@@ -1050,7 +1045,8 @@ class ExtraDimensions:
         return dim_slice
 
     def index_of(self, dim: str, value: Any) -> int:
-        """Find index for value in the dimension dim
+        """
+        Find index for value in the dimension dim
 
         :param dim: The name of the dimension
         :param value: The coordinate value.
@@ -1061,7 +1057,8 @@ class ExtraDimensions:
         return self._coords[dim].searchsorted(value)
 
     def coord_slice(self, dim: str, coord_range: Union[float, Tuple[float, float]]) -> Tuple[int, int]:
-        """Returns the Integer index for a coordinate (min, max) range.
+        """
+        Returns the Integer index for a coordinate (min, max) range.
 
         :param dim: The name of the dimension
         :param coord_range: The coordinate range.
@@ -1076,7 +1073,8 @@ class ExtraDimensions:
         return start_index, stop_index
 
     def chunk_size(self) -> Tuple[Tuple[str, ...], Tuple[int, ...]]:
-        """Returns the names and shapes of dimenions in dimension order
+        """
+        Returns the names and shapes of dimenions in dimension order
 
         :return: A tuple containing the names and max sizes of each dimension
         """

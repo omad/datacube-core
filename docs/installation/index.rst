@@ -1,6 +1,6 @@
-******************************************
-Installing and managing the Open Data Cube
-******************************************
+**************
+Administration
+**************
 
 This section contains information on setting up and managing the Open Data Cube.
 

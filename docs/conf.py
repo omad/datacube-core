@@ -38,6 +38,8 @@ extensions = [
     'sphinx.ext.napoleon'
 ]
 
+set_type_checking_flag = True
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -68,7 +70,7 @@ release = version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['README.rst']
+exclude_patterns = ['README.rst', '.direnv']
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -96,6 +98,8 @@ intersphinx_mapping = {
     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
     'xarray': ('https://xarray.pydata.org/en/stable/', None),
+    'rasterio': ('https://rasterio.readthedocs.io/en/latest/', None),
+    'dask': ('https://docs.dask.org/en/latest/', None),
 }
 
 graphviz_output_format = 'svg'

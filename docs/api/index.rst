@@ -12,7 +12,6 @@ The following pages provide a full API reference for the ``datacube`` python lib
     core-classes/datacube
     core-classes/dataset
     core-classes/datasetType
-    core-classes/geometry
     core-classes/measurement
     core-classes/metadataType
     core-classes/range
@@ -45,6 +44,7 @@ The following pages provide a full API reference for the ``datacube`` python lib
     geometry/creating
     geometry/spatial-operations
     geometry/utilities
+    core-classes/geometry
 
 
 .. toctree::

@@ -124,10 +124,10 @@ def affine_transform_pix(gbox: GeoBox, transform: Affine) -> GeoBox:
     Apply affine transform on pixel side.
 
     :param transform: Affine matrix mapping from new pixel coordinate space to
-    pixel coordinate space of input gbox
+                      pixel coordinate space of input gbox
 
     :returns: GeoBox of the same pixel shape but covering different region,
-    pixels in the output gbox relate to input geobox via `transform`
+              pixels in the output gbox relate to input geobox via `transform`
 
     X_old_pix = transform * X_new_pix
 
@@ -138,15 +138,16 @@ def affine_transform_pix(gbox: GeoBox, transform: Affine) -> GeoBox:
 
 
 class GeoboxTiles():
-    """ Partition GeoBox into sub geoboxes
+    """
+    Partition GeoBox into sub geoboxes
+
+    Construct from a ``GeoBox``
+
+    :param box: source :class:`datacube.utils.geometry.GeoBox`
+    :param tile_shape: Shape of sub-tiles in pixels (rows, cols)
     """
 
     def __init__(self, box: GeoBox, tile_shape: Tuple[int, int]):
-        """ Construct from a ``GeoBox``
-
-        :param box: source :class:`datacube.utils.geometry.GeoBox`
-        :param tile_shape: Shape of sub-tiles in pixels (rows, cols)
-        """
         self._gbox = box
         self._tile_shape = tile_shape
         self._shape = tuple(math.ceil(float(N)/n)

@@ -42,9 +42,8 @@ class Expression:
 
 
 class Field:
-    """
-    A searchable field within a dataset/storage metadata document.
-    """
+    """A searchable field within a dataset/storage metadata document."""
+
     # type of field.
     # If type is not specified, the field is a string
     # This should always be one of _AVAILABLE_TYPE_NAMES
@@ -177,9 +176,6 @@ def parse_search_field(doc, name=''):
 
 
 def get_dataset_fields(metadata_definition: Mapping[str, Any]) -> Dict[str, Field]:
-    """Construct search fields dictionary not tied to any specific db
-    implementation.
-
-    """
+    """Construct search fields dictionary not tied to any specific db implementation."""
     fields = toolz.get_in(['dataset', 'search_fields'], metadata_definition, {})
     return {n: parse_search_field(doc, name=n) for n, doc in fields.items()}
