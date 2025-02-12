@@ -1,16 +1,15 @@
+# Should this even exist? Most of this can and should  be handled by pre-commit?
+# -- Damien 2025-02-12
 name: lint
 
 on:
   pull_request:
-    paths:
-      - '**'
-
   push:
     branches:
       - develop
+      - omad-develop
     paths:
       - '**'
-      - '!.github/**'
       - '.github/workflows/lint.yaml'
       - '!docker/**'
       - '!docs/**'
@@ -18,6 +17,7 @@ on:
   workflow_dispatch:
 
 permissions: {}
+
 
 jobs:
   lint:
