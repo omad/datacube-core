@@ -48,7 +48,7 @@ jobs:
     - name: Install Ubuntu dev packages
       run: |
         apt-get update
-        apt-get install -y build-essential libpq-dev g++ postgresql-client git
+        apt-get install -y build-essential libpq-dev libgeos-dev libhdf5-dev libproj-dev libnetcdf-dev g++ postgresql-client git
 
     - uses: actions/checkout@v4
       with:
@@ -74,7 +74,7 @@ jobs:
         uv venv --python 3.12.9 # Use a version of python installed by uv. Also comes with python headers
 
         . .venv/bin/activate
-        uv pip install -e '.[test]'
+        uv pip install --no-binary rasterio --no-binary netcdf4 --no-binary pyproj --no-binary shapely -e '.[test]'
       env:
         UV_LINK_MODE: copy
 
