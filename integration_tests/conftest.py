@@ -772,14 +772,13 @@ def uninitialised_postgres_db_pair(
 def index(
     cfg_env: ODCEnvironment, uninitialised_postgres_db: PostGisDb | PostgresDb
 ) -> Generator[AbstractIndex]:
-    index = index_connect(cfg_env, validate_connection=False)
-    index.init_db()
-    yield index
-    # Explicitly dispose the index's SQLAlchemy engine pool so its connections
-    # are released immediately. Relying on `del` + garbage collection leaks
-    # connections under the Python 3.14.0-3.14.4 GC (see cleanup_db).
-    index.close()
-    del index
+    # The `with` block disposes the index's SQLAlchemy engine pool on teardown
+    # (AbstractIndex.__exit__ -> close()), releasing its connections immediately.
+    # Relying on `del` + garbage collection leaks connections under the
+    # Python 3.14.0-3.14.4 GC (see cleanup_db).
+    with index_connect(cfg_env, validate_connection=False) as index:
+        index.init_db()
+        yield index
 
 
 @pytest.fixture
@@ -799,55 +798,52 @@ def index_pair_populated_empty(
     eo3_africa_dataset2_doc,
 ) -> Generator[tuple]:
     populated_cfg, empty_cfg = cfg_env_pair
-    populated_idx = index_connect(populated_cfg, validate_connection=False)
-    empty_idx = index_connect(empty_cfg, validate_connection=False)
-    populated_idx.init_db()
-    empty_idx.init_db(with_default_types=False)
-    assert list(empty_idx.products.get_all()) == []
-    assert list(populated_idx.products.get_all()) == []
-    # Populate the populated index
-    populated_idx.metadata_types.add(
-        populated_idx.metadata_types.from_doc(extended_eo3_metadata_type_doc)
-    )
-    for prod_doc in (
-        base_eo3_product_doc,
-        extended_eo3_product_doc,
-        africa_s2_product_doc,
+    # The `with` block disposes both engine pools on teardown (see `index`).
+    with (
+        index_connect(populated_cfg, validate_connection=False) as populated_idx,
+        index_connect(empty_cfg, validate_connection=False) as empty_idx,
     ):
-        populated_idx.products.add_document(prod_doc)
-    for ds_doc, ds_path in (
-        eo3_ls8_dataset_doc,
-        eo3_ls8_dataset2_doc,
-        eo3_ls8_dataset3_doc,
-        eo3_ls8_dataset4_doc,
-        eo3_wo_dataset_doc,
-        eo3_africa_dataset_doc,
-        eo3_africa_dataset2_doc,
-    ):
-        doc_to_ds(populated_idx, ds_doc["product"]["name"], ds_doc, ds_path)
-    assert list(populated_idx.products.get_all()) != list(empty_idx.products.get_all())
-    assert list(empty_idx.products.get_all()) == []
-    assert list(populated_idx.products.get_all()) != []
+        populated_idx.init_db()
+        empty_idx.init_db(with_default_types=False)
+        assert list(empty_idx.products.get_all()) == []
+        assert list(populated_idx.products.get_all()) == []
+        # Populate the populated index
+        populated_idx.metadata_types.add(
+            populated_idx.metadata_types.from_doc(extended_eo3_metadata_type_doc)
+        )
+        for prod_doc in (
+            base_eo3_product_doc,
+            extended_eo3_product_doc,
+            africa_s2_product_doc,
+        ):
+            populated_idx.products.add_document(prod_doc)
+        for ds_doc, ds_path in (
+            eo3_ls8_dataset_doc,
+            eo3_ls8_dataset2_doc,
+            eo3_ls8_dataset3_doc,
+            eo3_ls8_dataset4_doc,
+            eo3_wo_dataset_doc,
+            eo3_africa_dataset_doc,
+            eo3_africa_dataset2_doc,
+        ):
+            doc_to_ds(populated_idx, ds_doc["product"]["name"], ds_doc, ds_path)
+        assert list(populated_idx.products.get_all()) != list(
+            empty_idx.products.get_all()
+        )
+        assert list(empty_idx.products.get_all()) == []
+        assert list(populated_idx.products.get_all()) != []
 
-    yield populated_idx, empty_idx
-
-    # Dispose engine pools immediately (see `index` fixture).
-    populated_idx.close()
-    empty_idx.close()
-    del populated_idx
-    del empty_idx
+        yield populated_idx, empty_idx
 
 
 @pytest.fixture
 def index_empty(
     cfg_env: ODCEnvironment, uninitialised_postgres_db: PostGisDb | PostgresDb
 ) -> Generator[Index]:
-    index = index_connect(cfg_env, validate_connection=False)
-    index.init_db(with_default_types=False)
-    yield index
-    # Dispose engine pool immediately (see `index` fixture).
-    index.close()
-    del index
+    # Dispose the engine pool on teardown via the `with` block (see `index`).
+    with index_connect(cfg_env, validate_connection=False) as index:
+        index.init_db(with_default_types=False)
+        yield index
 
 
 def remove_postgres_dynamic_indexes() -> None:
