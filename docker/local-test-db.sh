@@ -67,7 +67,9 @@ cmd_up() {
     echo "Starting container ${ODC_TEST_PG_CONTAINER} on port ${ODC_TEST_PG_PORT} ..." >&2
     # NB: PostgreSQL 18 expects a single mount at /var/lib/postgresql (the data
     # lives in a versioned subdirectory). Using a tmpfs keeps the throwaway test
-    # data in RAM, and fsync=off trades durability for speed (fine for tests).
+    # data in RAM, and the tuning flags below trade durability/background work
+    # for speed (fine for tests): no fsync/WAL safety, minimal WAL, no autovacuum,
+    # and more memory for the DDL-heavy schema setup the tests perform.
     docker run -d \
         --name "${ODC_TEST_PG_CONTAINER}" \
         -e POSTGRES_DB=opendatacube \
@@ -78,7 +80,15 @@ cmd_up() {
         -v "${INIT_SCRIPT}:/docker-entrypoint-initdb.d/create-pg-databases.sh:ro" \
         --tmpfs /var/lib/postgresql \
         "${ODC_TEST_PG_IMAGE}" \
-        -c fsync=off -c full_page_writes=off -c synchronous_commit=off >/dev/null
+        -c fsync=off \
+        -c full_page_writes=off \
+        -c synchronous_commit=off \
+        -c wal_level=minimal \
+        -c max_wal_senders=0 \
+        -c autovacuum=off \
+        -c shared_buffers=256MB \
+        -c work_mem=16MB \
+        -c maintenance_work_mem=256MB >/dev/null
 
     echo -n "Waiting for PostgreSQL to accept connections " >&2
     for _ in $(seq 1 60); do
