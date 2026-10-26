@@ -32,7 +32,9 @@ services:
       - postgres
 
   postgres:
-    image: postgis/postgis:18-3.6
+    # Override with POSTGIS_IMAGE for platforms without an official postgis
+    # build, e.g. on arm64: POSTGIS_IMAGE=imresamu/postgis:18-3.6-alpine3.23
+    image: ${POSTGIS_IMAGE:-postgis/postgis:18-3.6}
     hostname: postgres
     environment:
       - POSTGRES_DB=opendatacube
@@ -46,7 +48,20 @@ services:
       - ./docker/assets/create-pg-databases.sh:/docker-entrypoint-initdb.d/create-pg-databases.sh
       - type: tmpfs
         target: /var/lib/postgresql
-    command: -c fsync=off -c full_page_writes=off -c synchronous_commit=off
+    # Tuning for a throwaway test database: durability is irrelevant (data lives
+    # on tmpfs), so disable fsync/WAL safety, use the minimal WAL level, turn off
+    # autovacuum churn, and give the server more memory for the DDL-heavy schema
+    # setup the integration tests perform.
+    command: >-
+      -c fsync=off
+      -c full_page_writes=off
+      -c synchronous_commit=off
+      -c wal_level=minimal
+      -c max_wal_senders=0
+      -c autovacuum=off
+      -c shared_buffers=256MB
+      -c work_mem=16MB
+      -c maintenance_work_mem=256MB
     healthcheck:
       test: ["CMD", "pg_isready", "-h", "postgres", "-q", "--port", "35432", "-d", "pgintegration", "-U", "opendatacube"]
       timeout: 45s

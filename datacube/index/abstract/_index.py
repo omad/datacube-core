@@ -15,6 +15,7 @@ from datacube.utils.generic import thread_local_cache
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
+    from types import TracebackType
     from urllib.parse import ParseResult
 
     from odc.geo import CRS
@@ -392,7 +393,12 @@ class AbstractIndex(ABC):
     def __enter__(self) -> AbstractIndex:
         return self
 
-    def __exit__(self) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.close()
 
 
