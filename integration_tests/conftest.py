@@ -732,9 +732,175 @@ def cleanup_db(cfg_env: ODCEnvironment, db: PostgresDb | PostGisDb) -> None:
     # connection limit). Avoiding gc.collect() here saves ~70ms per test.
 
 
+# ---------------------------------------------------------------------------
+# Template-database cloning
+#
+# Building the ODC schema (tables, default metadata types, postgis spatial
+# index and alembic stamp) costs ~90ms per test when done with DROP SCHEMA +
+# init_db. Instead we build it once per session into a template database and
+# then recreate each test's working database from that template with
+# ``CREATE DATABASE ... TEMPLATE ...``, which Postgres does as a fast
+# file-level copy (~10ms) and which gives every test a pristine, fully
+# initialised database with perfect isolation.
+# ---------------------------------------------------------------------------
+
+#: Admin/maintenance database to connect to when issuing CREATE/DROP DATABASE
+#: (you cannot drop the database you are connected to).
+_MAINTENANCE_DB = "opendatacube"
+
+
+def _db_names(cfg_env: ODCEnvironment) -> tuple[str, str]:
+    """Return (working_db_name, template_db_name) for an environment."""
+    from urllib.parse import urlparse
+
+    work_db = urlparse(psql_url_from_config(cfg_env)).path[1:]
+    return work_db, f"{work_db}_tmpl"
+
+
+def _maintenance_engine(cfg_env: ODCEnvironment):
+    """
+    Return an AUTOCOMMIT SQLAlchemy engine connected to the maintenance
+    database, used to issue CREATE/DROP DATABASE statements.
+    """
+    from sqlalchemy import create_engine
+
+    work_db, _ = _db_names(cfg_env)
+    url = psql_url_from_config(cfg_env)
+    maint_url = url.replace(f"/{work_db}", f"/{_MAINTENANCE_DB}")
+    return create_engine(maint_url, isolation_level="AUTOCOMMIT")
+
+
+def _build_template_db(cfg_env: ODCEnvironment) -> None:
+    """
+    Create and fully initialise the template database for an environment
+    (schema + default metadata types + postgis spatial index). Idempotent:
+    the template is dropped and rebuilt so a session always starts fresh.
+    """
+    _, tmpl_db = _db_names(cfg_env)
+    maint = _maintenance_engine(cfg_env)
+    with maint.connect() as c:
+        _terminate_connections(c, tmpl_db)
+        c.execute(text(f'DROP DATABASE IF EXISTS "{tmpl_db}"'))
+        c.execute(text(f'CREATE DATABASE "{tmpl_db}"'))
+    maint.dispose()
+
+    # Initialise the template by connecting to it via a temporary env whose
+    # URL points at the template database.
+    tmpl_cfg = _env_for_db(cfg_env, tmpl_db)
+    with index_connect(tmpl_cfg, validate_connection=False) as index:
+        index.init_db()
+
+
+def _clone_from_template(cfg_env: ODCEnvironment, tz: str | None = None) -> None:
+    """
+    Recreate an environment's working database from its template, giving the
+    next test a pristine, fully-initialised database.
+    """
+    work_db, tmpl_db = _db_names(cfg_env)
+    maint = _maintenance_engine(cfg_env)
+    with maint.connect() as c:
+        _terminate_connections(c, work_db)
+        c.execute(text(f'DROP DATABASE IF EXISTS "{work_db}"'))
+        c.execute(text(f'CREATE DATABASE "{work_db}" TEMPLATE "{tmpl_db}"'))
+        if tz:
+            c.execute(text(f"ALTER DATABASE {work_db} SET timezone = {tz!r}"))
+    maint.dispose()
+
+    # SQLAlchemy keeps dynamically-created (dix_*) indexes in its process-global
+    # in-memory MetaData. A previous test may have added one; clear it so a
+    # later create_all() (e.g. a `system init` after dropping the schema) does
+    # not try to recreate an index the cloned database does not have.
+    if cfg_env._name in ("datacube", "default", "postgres", "datacube3"):
+        remove_postgres_dynamic_indexes()
+    else:
+        remove_postgis_dynamic_indexes()
+
+
+def _terminate_connections(connection, db_name: str) -> None:
+    """Terminate other backends connected to db_name so it can be dropped."""
+    connection.execute(
+        text(
+            "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+            "WHERE datname = :db AND pid <> pg_backend_pid()"
+        ),
+        {"db": db_name},
+    )
+
+
+def _env_for_db(cfg_env: ODCEnvironment, db_name: str) -> ODCEnvironment:
+    """
+    Return an ODCEnvironment identical to cfg_env but pointing at db_name.
+
+    Used to connect to the template database while reusing the original
+    environment's driver/credentials. Built from an explicit raw dict (which
+    disables environment-variable overrides) so it is unaffected by the
+    ODC_*_DB_URL variables that point at the working database.
+    """
+    work_db, _ = _db_names(cfg_env)
+    url = psql_url_from_config(cfg_env).replace(f"/{work_db}", f"/{db_name}")
+    raw = {
+        "index_driver": cfg_env._raw.get("index_driver", "default"),
+        "db_url": url,
+    }
+    if "psycopg_version" in cfg_env._raw:
+        raw["psycopg_version"] = cfg_env._raw["psycopg_version"]
+    return ODCConfig(raw_dict={cfg_env._name: raw})[cfg_env._name]
+
+
 @pytest.fixture(params=["America/Los_Angeles", "UTC"])
 def db_tz(request) -> str:
     return request.param
+
+
+@pytest.fixture(scope="session")
+def _db_templates() -> Generator[set[str]]:
+    """
+    Session-wide registry of which working databases have had their template
+    built. Templates are built lazily (on first use of each database) by the
+    `cloned_postgres_db` fixture and dropped at the end of the session.
+
+    Keyed by working-database name (not environment name) because
+    datacube/datacube3 share pgintegration and postgis/postgis3 share
+    pgisintegration.
+    """
+    built: set[str] = set()
+    yield built
+    if not built:
+        return
+    # Teardown: drop every template database we created this session. Any env
+    # gives us a maintenance connection to the admin database.
+    cfg = ODCConfig(paths=CONFIG_FILE_PATHS)
+    maint = _maintenance_engine(cfg["datacube"])
+    with maint.connect() as c:
+        for work_db in built:
+            tmpl_db = f"{work_db}_tmpl"
+            _terminate_connections(c, tmpl_db)
+            c.execute(text(f'DROP DATABASE IF EXISTS "{tmpl_db}"'))
+    maint.dispose()
+
+
+@pytest.fixture
+def cloned_postgres_db(
+    cfg_env: ODCEnvironment, db_tz: str, _db_templates: set[str]
+) -> Generator[None]:
+    """
+    Reset the test database by cloning it from a session-built template.
+
+    The template (full schema + default metadata types + postgis spatial
+    index) is built once per environment, then each test recreates its working
+    database from the template with ``CREATE DATABASE ... TEMPLATE ...`` (a fast
+    file-level copy). This gives every test a pristine, fully-initialised,
+    perfectly-isolated database.
+    """
+    work_db, _ = _db_names(cfg_env)
+    # datacube/datacube3 share pgintegration and postgis/postgis3 share
+    # pgisintegration, so key the registry by working DB name to build each
+    # template only once per session.
+    if work_db not in _db_templates:
+        _build_template_db(cfg_env)
+        _db_templates.add(work_db)
+    _clone_from_template(cfg_env, db_tz)
+    yield
 
 
 @pytest.fixture
@@ -770,9 +936,11 @@ def uninitialised_postgres_db_pair(
 
 @pytest.fixture
 def index(
-    cfg_env: ODCEnvironment, uninitialised_postgres_db: PostGisDb | PostgresDb
+    cfg_env: ODCEnvironment, cloned_postgres_db: None
 ) -> Generator[AbstractIndex]:
-    # The `with` block disposes the index's SQLAlchemy engine pool on teardown
+    # The database has already been cloned from a fully-initialised template
+    # (schema + default metadata types), so init_db() here is a no-op. The
+    # `with` block disposes the index's SQLAlchemy engine pool on teardown
     # (AbstractIndex.__exit__ -> close()), releasing its connections immediately.
     # Relying on `del` + garbage collection leaks connections under the
     # Python 3.14.0-3.14.4 GC (see cleanup_db).
