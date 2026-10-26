@@ -8,7 +8,6 @@ Common methods for index integration tests.
 
 from __future__ import annotations
 
-import gc
 import itertools
 import os
 import warnings
@@ -725,11 +724,12 @@ def cleanup_db(cfg_env: ODCEnvironment, db: PostgresDb | PostGisDb) -> None:
             else pgis_core.SCHEMA_NAME,
         )
     db.close()
-    # The SQLAlchemy pools belonging to the engine are not garbage collected frequently
-    # enough with the new GC in Python 3.14.0-3.14.4 so postgres runs out of
-    # connections. Trigger a collection manually as workaround.
-    # Python 3.14.5 will contain the same GC as Python 3.13.
-    gc.collect()
+    # NB: SQLAlchemy engine pools are now disposed explicitly (db.close() above
+    # disposes the engine, and the index/index_empty fixtures call index.close()).
+    # This releases pooled connections immediately and removes the need for a
+    # per-test gc.collect() that previously worked around the Python 3.14.0-3.14.4
+    # GC not collecting engine pools quickly enough (which exhausted the postgres
+    # connection limit). Avoiding gc.collect() here saves ~70ms per test.
 
 
 @pytest.fixture(params=["America/Los_Angeles", "UTC"])
@@ -775,6 +775,10 @@ def index(
     index = index_connect(cfg_env, validate_connection=False)
     index.init_db()
     yield index
+    # Explicitly dispose the index's SQLAlchemy engine pool so its connections
+    # are released immediately. Relying on `del` + garbage collection leaks
+    # connections under the Python 3.14.0-3.14.4 GC (see cleanup_db).
+    index.close()
     del index
 
 
@@ -827,6 +831,9 @@ def index_pair_populated_empty(
 
     yield populated_idx, empty_idx
 
+    # Dispose engine pools immediately (see `index` fixture).
+    populated_idx.close()
+    empty_idx.close()
     del populated_idx
     del empty_idx
 
@@ -838,6 +845,8 @@ def index_empty(
     index = index_connect(cfg_env, validate_connection=False)
     index.init_db(with_default_types=False)
     yield index
+    # Dispose engine pool immediately (see `index` fixture).
+    index.close()
     del index
 
 

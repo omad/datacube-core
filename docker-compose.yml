@@ -32,7 +32,9 @@ services:
       - postgres
 
   postgres:
-    image: postgis/postgis:18-3.6
+    # Override with POSTGIS_IMAGE for platforms without an official postgis
+    # build, e.g. on arm64: POSTGIS_IMAGE=imresamu/postgis:18-3.6-alpine3.23
+    image: ${POSTGIS_IMAGE:-postgis/postgis:18-3.6}
     hostname: postgres
     environment:
       - POSTGRES_DB=opendatacube
